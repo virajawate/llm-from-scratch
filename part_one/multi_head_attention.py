@@ -18,7 +18,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from attn_mask import casual_mask
+from attn_mask import causal_mask
 
 class MultiHeadSelfAttention(nn.Module):
     def __init__(self, model_dim: int, n_head: int, dropout: float = 0.0, trace_shapes: bool = True):
@@ -46,7 +46,7 @@ class MultiHeadSelfAttention(nn.Module):
         
         scale = 1.0 / math.sqrt(self.head_dim)
         attn = torch.matmul(q, k.transpose(-2, -1)) * scale
-        mask = casual_mask(T, device=x.device)
+        mask = causal_mask(T, device=x.device)
         attn = attn.masked_fill(mask, float('-inf'))
         w = self.dropout(F.softmax(attn, dim=-1))
         # w = self.dropout(w)

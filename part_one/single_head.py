@@ -5,7 +5,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
-from attn_mask import casual_mask
+from attn_mask import causal_mask
 
 class SingleHeadedSelfAttention(nn.Module):
     def __init__(self, model_dim:int, k_dim: int, dropout:float=0.0, trace_shapes:bool=False):
@@ -26,7 +26,7 @@ class SingleHeadedSelfAttention(nn.Module):
             print(f"q = {q.shape} | k = {k.shape} | v = {v.shape}")
         scale = 1.0 / math.sqrt(q.size(-1))
         attn = torch.matmul(q, k.transpose(-2, -1)) * scale 
-        mask = casual_mask(T, device=x.device)
+        mask = causal_mask(T, device=x.device)
         attn = attn.masked_fill(mask.squeeze(1), float('-inf'))
         w = f.softmax(attn, dim=-1)
         w = self.dropout(w)

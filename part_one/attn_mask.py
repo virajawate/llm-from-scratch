@@ -1,10 +1,10 @@
 """
-1.3.1 Util Script for Casual Mask for Single Head
+1.3.1 Util Script for causal Mask for Single Head
 """
 
 import torch
 
-def casual_mask(T: int, device = None):
+def causal_mask(T: int, device = None):
     """
     Returns a bool mask where True means Masked
     Shape: (1, 1, T, T) 
