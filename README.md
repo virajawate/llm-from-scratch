@@ -6,3 +6,6 @@ Following LLM from scratch tutorial
 cd part_one
 python orchestrator.py --visualize
 ```
+
+## Output of the above cmd
+[PartOne_output](./part_one/PARTONE_README.md)
