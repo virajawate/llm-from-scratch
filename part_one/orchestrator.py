@@ -44,7 +44,7 @@ def main():
     run("python demo_mha_shapes.py")
 
     if args.visualize:
-        run("python demo_vis_multi_head.py")
+        run("python demo_vis_mha.py")
         print(f"\nVisualization Images saved to : {OUTPUT}")
     
     print("\nAll Part 1 Demo/Tests Completed")
