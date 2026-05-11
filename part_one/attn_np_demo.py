@@ -48,9 +48,9 @@ Q = X @ Wq
 K = X @ Wk
 V = X @ Wv
 
-print(f"Q shape : {Q.shape} \n Q = {Q[0]}")
-print(f"K shape : {K.shape} \n K = {K[0]}")
-print(f"V shape : {V.shape} \n V = {V[0]}")
+print(f"Q shape : {Q.shape} \n----\n Q = {Q[0]} \n=====\n")
+print(f"K shape : {K.shape} \n----\n K = {K[0]} \n=====\n")
+print(f"V shape : {V.shape} \n----\n V = {V[0]} \n=====\n")
 
 scale = 1.0 / np.sqrt(Q.shape[-1])
 attn_scores = (Q @ K.transpose(0, 2, 1)) * scale # (1, 3, 3)
