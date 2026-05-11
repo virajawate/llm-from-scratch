@@ -8,7 +8,7 @@ import math
 import torch
 from multi_head_attention import MultiHeadSelfAttention
 
-OUT_TXT = os.path.join(os.path.dirname(__file__), "out", "mha_shapes.txt")
+OUT_TXT = os.path.join(os.path.dirname(__file__), "output", "mha_shapes.txt")
 
 def log(s):
     print(s)
