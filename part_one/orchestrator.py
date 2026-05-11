@@ -22,7 +22,7 @@ tests/
 import subprocess, sys, pathlib, argparse, shlex
 
 ROOT    = pathlib.Path(__file__).resolve().parent
-OUTPUT  = f"{ROOT}/output"
+OUTPUT  = ROOT/"output"
 
 def run(cmd:str):
     print(f"\n>> {cmd}")
