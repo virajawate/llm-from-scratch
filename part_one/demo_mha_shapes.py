@@ -13,7 +13,7 @@ OUT_TXT = os.path.join(os.path.dirname(__file__), "output", "mha_shapes.txt")
 def log(s):
     print(s)
     with open(OUT_TXT, 'a') as f:
-        f.write(s+"/n")
+        f.write(s+"\n")
 
 if __name__ == "__main__":
     os.makedirs(os.path.dirname(OUT_TXT), exist_ok=True)
@@ -28,14 +28,14 @@ if __name__ == "__main__":
     qkv = attn.qkv(x)
     log(f"Linear qkv(x) : {tuple(qkv.shape)} = (B, T, 3 * model_dim)")
     qkv = qkv.view(B, T, 3, n_head, head_dim)
-    log(f"View to 5D : {tuple(qkv.shape)} = (B, T, 3, heads, head_dim)")
+    log(f"View to 5D : {tuple(qkv.shape)} = (B, T, 3, heads, head_dim) \n-----------")
     q, k, v = qkv.unbind(dim=2)
-    log(f"Q, K, V split : \nQ = {tuple(q.shape)} \nK = {tuple(k.shape)} \nV = {tuple(v.shape)}")
+    log(f"Q, K, V split : \nQ = {tuple(q.shape)} \nK = {tuple(k.shape)} \nV = {tuple(v.shape)} \n----------")
 
     q = q.transpose(1, 2)
     k = k.transpose(1, 2)
     v = v.transpose(1, 2)
-    log(f"Transpose heads: \nQ = {tuple(q.shape)} \nK = {tuple(k.shape)} \nV = {tuple(v.shape)} = (B, heads, T, head_dim)")
+    log(f"Transpose heads: \nQ = {tuple(q.shape)} \nK = {tuple(k.shape)} \nV = {tuple(v.shape)} \n(B, heads, T, head_dim) \n----------")
 
     scale = 1.0 / math.sqrt(head_dim)
     scores = torch.matmul(q, k.transpose(-2, -1)) * scale
