@@ -50,7 +50,7 @@ class MultiHeadSelfAttention(nn.Module):
         attn = attn.masked_fill(mask, float('-inf'))
         w = self.dropout(F.softmax(attn, dim=-1))
         # w = self.dropout(w)
-        ctx = torch.matmul( )
+        ctx = torch.matmul(w, v)
         if self.trace_shapes:
             print(f"Q: {q.shape}, K: {k.shape}, V: {v.shape}")
         out = ctx.transpose(1, 2).contiguous().view(B, T, C) # (B, T, model_dim)
