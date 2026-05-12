@@ -52,3 +52,17 @@ class FeedForward(nn.Module):
     
     def forward(self, x):
         return self.net(x)
+
+class Block(nn.Module):
+    def __init__(self, n_embd: int, n_head: int, dropout: float):
+        super().__init__()
+        self.ln_1 = nn.LayerNorm(n_embd)
+        self.attn = CausalSelfAttention(n_embd, n_head, dropout)
+        self.ln_2 = nn.LayerNorm(n_embd)
+        self.ffn = FeedForward(n_embd, mult=4, dropout=dropout)
+    
+    def forward(self, x):
+        x += self.attn(self.ln_1(x))
+        x += self.ffn(self.ln_2(x))
+        return x
+
