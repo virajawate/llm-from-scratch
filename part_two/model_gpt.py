@@ -39,3 +39,16 @@ class CausalSelfAttention(nn.Module):
         y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.proj(y)
         return y
+
+class FeedForward(nn.Module):
+    def __init__(self, n_embd: int, mult: int = 4, dropout: float = 0.0):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_embd, mult * n_embd),
+            nn.GELU(),
+            nn.Linear(mult * n_embd, n_embd),
+            nn.Dropout(dropout)
+        )
+    
+    def forward(self, x):
+        return self.net(x)
