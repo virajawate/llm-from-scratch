@@ -25,7 +25,7 @@ def main():
     p.add_argument('--output_dir', type=str, default='runs/min-gpt')
     p.add_argument('--block_size', type=int, default=256)
     p.add_argument('--batch_size', type=int, default=32)
-    p.add_argument('--n-layer', type=int, default=4)
+    p.add_argument('--n_layer', type=int, default=4)
     p.add_argument('--n_head', type=int, default=4)
     p.add_argument('--n_embd', type=int, default=256)
     p.add_argument('--dropout', type=float, default=0.0)
@@ -49,20 +49,20 @@ def main():
 
     tokn = ByteTokenizer()
     dset = ByteDataset(args.data, block_size=args.block_size)
-    model = GPT(tokn.vocab_size, args.block_size, args.n_layer, args.n_head, args.dropout).to(args.device)
+    model = GPT(tokn.vocab_size, args.block_size, args.n_layer, args.n_head, args.n_embd, args.dropout).to(args.device)
 
     if args.compile and hasattr(torch, 'compile'):
         model = torch.compile(model)
     
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=args.weight_decay)
-    scaler = torch.cuda.amp.GradScaler(enabled=(args.amp and args.device.type == 'cuda'))
+    scaler = torch.amp.GradScaler(enabled=(args.amp and args.device.type == 'cuda'))
 
     best_val = float('-inf')
     t_0 = time.time()
-    model.train()
+    model.train().to(args.device)
     for step in range(1, args.steps + 1):
         xb, yb = dset.get_batch('train', args.batch_size, args.device)
-        with torch.cuda.amp.autocast(enabled=(args.amp and args.device.type == 'cuda')):
+        with torch.amp.autocast(device_type='cuda' if torch.cuda.is_available() and not args.cpu else 'cpu'):
             _, loss = model(xb, yb)
         opt.zero_grad(set_to_none=True)
         scaler.scale(loss).backward()
@@ -80,7 +80,8 @@ def main():
             print(f"Eval | train {losses['train']:.4f} | Val {losses['val']:.4f}")
             if losses['val'] < best_val:
                 best_val = losses['val']
-                ck_pt_path = f"{args.output_dir}/model_best.pt"
+                ck_pt_path = f"{args.output_dir}/model_final.pt"
+                print(ck_pt_path)
                 import os; os.makedirs(args.output_dir, exist_ok=True)
                 torch.save({'model' : model.state_dict(), 'config' : {
                     'vocab_size' : tokn.vocab_size,
@@ -93,13 +94,13 @@ def main():
                 print(f"Save Check point : {ck_pt_path}")
         
         if args.sample_every > 0 and step % args.sample_every == 0:
-            start = torch.randint(low=0, high=len(dset.train) - args.block_size - 1, size=(1,)),item()
+            start = torch.randint(low=0, high=len(dset.train) - args.block_size - 1, size=(1,)).item()
             seed = dset.train[start:start + args.block_size].unsqueeze(0).to(args.device)
-            output = model.generate(seed, max_new_tokens=args.sample_token, temperature=args.temperature, top_k=args.top_k, top_p=args.top_p)
+            output = model.generate(seed, max_new_tokens=args.sample_tokens, temperature=args.temperature, top_k=args.top_k, top_p=args.top_p)
             text = tokn.decode(output[0].cpu())
-            print("]\n ============================ Sample ============================\n")
-            print(text[-{args.block_size + args.sample_tokens}:])
-            print("]\n ================================================================\n")
+            # print("]\n ============================ Sample ============================\n")
+            # print(text[-(args.block_size + args.sample_tokens):])
+            # print("]\n ================================================================\n")
     
     import os; os.makedirs(args.output_dir, exist_ok=True)
     torch.save({'model' : model.state_dict()}, f"{args.output_dir}/model_final.pt")

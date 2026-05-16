@@ -62,8 +62,8 @@ class Block(nn.Module):
         self.ffn = FeedForward(n_embd, mult=4, dropout=dropout)
     
     def forward(self, x):
-        x += self.attn(self.ln_1(x))
-        x += self.ffn(self.ln_2(x))
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.ffn(self.ln_2(x))
         return x
 
 class GPT(nn.Module):
@@ -109,14 +109,13 @@ class GPT(nn.Module):
         temperature: float = 1.0,
         top_k: int | None = 50,
         top_p: float | None = None
-        ):
+    ):
         from utils import top_k_top_p_filtering
         self.eval()
-
         if idx.size(1) == 0:
             idx = torch.full((idx.size(0), 1), 10, dtype=torch.long, device=idx.device)
         for _ in range(max_new_tokens):
-            idx_cond = idx[:, -self.block_size]
+            idx_cond = idx[:, -self.block_size:]
             logits, _ = self(idx_cond)
             logits = logits[:, -1, :] / max(temperature, 1e-6)
             logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)

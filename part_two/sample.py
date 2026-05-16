@@ -2,12 +2,13 @@ from __future__ import annotations
 import argparse, torch
 from tokenizer import ByteTokenizer
 from model_gpt import GPT
+import os
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--ckpt', type=str, required=True)
     p.add_argument('--prompt', type=str, default='')
-    p.add_argument('--tokens', type=str, default=200)
+    p.add_argument('--tokens', type=int, default=200)
     p.add_argument('--temperature', type=float, default=1.0)
     p.add_argument('--top_k', type=int, default=50)
     p.add_argument('--top_p', type=float, default=None)
@@ -15,26 +16,24 @@ def main():
     args = p.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() and not args.cpu else 'cpu')
-
     tokn = ByteTokenizer()
     prompt_ids = tokn.encode(args.prompt).unsqueeze(0).to(device)
     if prompt_ids.numel() == 0:
         # If no prompt provide, seed with newline byte (10)
         prompt_ids = torch.tensor([[10]], dtype=torch.long, device=device)
-    
     ck_pnt = torch.load(args.ckpt, map_location=device)
     config = ck_pnt.get('config', None)
 
     if config is None:
         model = GPT(tokn.vocab_size, block_size=256).to(device)
-        model.load_state_dict(ck_pnt['model'])
+        model.load_state_dict(ck_pnt["model"])
     else:
         model = GPT(**config).to(device)
         model.load_state_dict(ck_pnt['model'])
 
     with torch.no_grad():
         output = model.generate(prompt_ids, max_new_tokens=args.tokens, temperature=args.temperature, top_k=args.top_k, top_p=args.top_p)
-    print(tokn.decode(output[0].cpu()))
+    print(tokn.decode(output[0]))
 
 if __name__ == '__main__':
     main()
