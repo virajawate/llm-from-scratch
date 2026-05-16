@@ -38,8 +38,8 @@ def run(cmd: str):
 
 if __name__ == "__main__":
     # Quick smoke training on a tiny file path tiny_hi.txt;
-    # run("python train.py --data tiny.txt --steps 10000 --sample_every 100 --eval_interval 100 --amp ")
+    run("python train.py --data poems_eng.txt --steps 10000 --sample_every 100 --eval_interval 100 --amp ")
     # Sample Run
     run(f"python sample.py --ckpt '{CKPNT}' --tokens 200 --prompt 'Write a Poem'")
     # Evaluate Final Value Loss
-    # run(f"python eval_loss.py --data tiny.txt --ckpt '{CKPNT}' --iters 50 --block_size 256")
+    run(f"python eval_loss.py --data poems_eng.txt --ckpt '{CKPNT}' --iters 50 --block_size 256")
