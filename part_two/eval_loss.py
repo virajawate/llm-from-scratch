@@ -17,3 +17,25 @@ def main():
 
     d_set = ByteDataset(args.data, block_size=args.block_size)
     ckpnts = torch.load(args.ckpt, map_location=device)
+    cfg = ckpnts.get('config', {
+        'vocab_size': 256,
+        'block_size': args.block_size,
+        'n_layer': 4,
+        'n_head': 4,
+        'n_embd': 256,
+        'dropout': 0.0,
+    })
+    model = GPT(**cfg).to(device)
+    model.load_state_dict(ckpnts['model'])
+
+    model.eval()
+    losses = []
+    with torch.no_grad():
+        for _ in range(args.iters):
+            xb, yb = d_set.get_batch('val', args.batch_size, device)
+            _, loss = model(xb, yb)
+            losses.append(loss.item())
+    print(f"Val loss: {sum(losses) / len(losses):.4f}")
+
+if __name__ == '__main__':
+    main()
