@@ -24,10 +24,11 @@ Example quickstart (CPU ok):
 
 """
 
-import subprocess, sys, pathlib, shlex
+import os, subprocess, sys, shlex
 
-ROOT = pathlib.Path(__file__).resolve().parent
-RUNS = ROOT / 'runs' / 'min-gpt'
+ROOT = os.getcwd()
+RUNS = os.path.join(ROOT,'runs','min-gpt')
+CKPNT = os.path.join(ROOT,'runs','min-gpt', 'model_final.pt')
 
 def run(cmd: str):
     print(f"\n>> {cmd}")
@@ -37,10 +38,8 @@ def run(cmd: str):
 
 if __name__ == "__main__":
     # Quick smoke training on a tiny file path tiny_hi.txt;
-    run("python train.py --data tiny_hi.txt --steps 400 --sample_every 100 --eval_interval 100 --batch_size 128 --n_layer 2 --n_head 2 --n_embd 128")
-
-    # Sample from the best checkpoint
-    run(f"python sample.py --ckpt {RUNS}/model_best.pt --tokens 200 --prompt 'Hi I am here'")
-
+    # run("python train.py --data tiny.txt --steps 10000 --sample_every 100 --eval_interval 100 --amp ")
+    # Sample Run
+    run(f"python sample.py --ckpt '{CKPNT}' --tokens 200 --prompt 'Write a Poem'")
     # Evaluate Final Value Loss
-    run(f"python eval_loss.py --data tiny_hi.txt --chpt {RUNS}/model_best.pt --iters 50 --block_size 128")
+    # run(f"python eval_loss.py --data tiny.txt --ckpt '{CKPNT}' --iters 50 --block_size 256")
