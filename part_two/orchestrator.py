@@ -29,7 +29,8 @@ import os, subprocess, sys, shlex
 ROOT = os.getcwd()
 RUNS = os.path.join(ROOT,'runs','min-gpt')
 CKPNT = os.path.join(ROOT,'runs','min-gpt', 'model_final.pt')
-
+# DATA = os.path.join(ROOT, 'dataset', 'poems_eng.txt')
+DATA = os.path.join(ROOT, 'dataset', 'AliceAdventure.txt')
 def run(cmd: str):
     print(f"\n>> {cmd}")
     res = subprocess.run(shlex.split(cmd), cwd=ROOT)
@@ -38,8 +39,8 @@ def run(cmd: str):
 
 if __name__ == "__main__":
     # Quick smoke training on a tiny file path tiny_hi.txt;
-    run("python train.py --data poems_eng.txt --steps 10000 --sample_every 100 --eval_interval 100 --amp ")
+    run(f"python train.py --data '{DATA}' --steps 10000 --sample_every 100 --eval_interval 100 --amp --dropout 0.2")
     # Sample Run
-    run(f"python sample.py --ckpt '{CKPNT}' --tokens 200 --prompt 'Write a Poem'")
+    run(f"python sample.py --ckpt '{CKPNT}' --tokens 200 --prompt 'Rain on a dark day'")
     # Evaluate Final Value Loss
-    run(f"python eval_loss.py --data poems_eng.txt --ckpt '{CKPNT}' --iters 50 --block_size 256")
+    run(f"python eval_loss.py --data '{DATA}' --ckpt '{CKPNT}' --iters 50 --block_size 256")
