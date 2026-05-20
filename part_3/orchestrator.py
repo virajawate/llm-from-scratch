@@ -6,7 +6,7 @@ Part 3/
     [x]rope.py
     [x]swiglu.py
     [x]kv_cache.py
-    []attn_modern.py
+    [x]attn_modern.py
     []block_modern.py
     []model_modern.py
     []demo_generate.py
