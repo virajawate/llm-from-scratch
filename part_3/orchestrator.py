@@ -10,7 +10,7 @@ Part 3/
     [x]block_modern.py
     [x]model_modern.py
         [x]utils.py
-    []demo_generate.py
+    [x]demo_generate.py
     tests/
         test_rmsnorm.py
         test_rope_apply.py
