@@ -8,7 +8,7 @@ Part 3/
     [x]kv_cache.py
     [x]attn_modern.py
     [x]block_modern.py
-    []model_modern.py
+    [x]model_modern.py
     []demo_generate.py
     tests/
         test_rmsnorm.py
