@@ -9,6 +9,7 @@ Part 3/
     [x]attn_modern.py
     [x]block_modern.py
     [x]model_modern.py
+        []utils.py
     []demo_generate.py
     tests/
         test_rmsnorm.py
