@@ -7,7 +7,7 @@ Part 3/
     [x]swiglu.py
     [x]kv_cache.py
     [x]attn_modern.py
-    []block_modern.py
+    [x]block_modern.py
     []model_modern.py
     []demo_generate.py
     tests/
