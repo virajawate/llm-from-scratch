@@ -29,7 +29,7 @@ def test_rope_rotation_shapes_gqa():
     """
     B, H, Hk, T, D = 2, 8, 2, 7, 16
 
-    rc = RoPECache(head_dim = d, max_pos = 128)
+    rc = RoPECache(head_dim = D, max_pos = 128)
     q = torch.randn(B, H, T, D)
     k = torch.randn(B, Hk, T, D)
     pos = torch.arange(10, 10 + T)
