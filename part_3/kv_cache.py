@@ -2,7 +2,7 @@ from __future__ import annotations
 import torch
 from dataclasses import dataclass
 
-@property
+@dataclass
 class KVCache:
     """
     self.k : (B, H, T, D)
