@@ -35,8 +35,8 @@ class RollingKV:
             self.v = torch.cat([self.v, v_new], dim=2)
         # Crop
         if self.k.size(2) > self.window + self.sink:
-            sink_part = self.k[:, :self.sink, :]
-            sink_val = self.v[:, :self.sink, :]
+            sink_part = self.k[:, :, :self.sink, :]
+            sink_val = self.v[:, :, :self.sink, :]
             tail_k = self.k[:, :, -self.window:, :]
             tail_v = self.v[:, :, -self.window:, :]
             self.k = torch.cat([sink_part, tail_k], dim=2)
