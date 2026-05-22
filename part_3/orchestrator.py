@@ -38,9 +38,9 @@ if __name__ == "__main__":
     p.add_argument("--demo", action="store_true", help="run a tiny generation demo")
     args = p.parse_args()
 
-    run("python -m pytest -q tests/test_rmsnorm.py") 
-    run("python -m pytest -q tests/test_rope_apply.py") 
-    run("python -m pytest -q tests/test_kvcache_shapes.py")
+    run("python -m pytest -q test/test_rmsnorm.py") 
+    run("python -m pytest -q test/test_rope_apply.py") 
+    run("python -m pytest -q test/test_kvcache_shapes.py")
 
     if args.demo:
         run("python demo_generate.py --rmsnorm --rope --swiglu --sliding_window 64 --sink 4 --tokens 200")
