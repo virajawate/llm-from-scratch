@@ -49,8 +49,8 @@ class CausalSelfAttentionModern(nn.Module):
         if self.use_rope:
             pos = torch.arange(start_pos, start_pos + T, device = x.device)
             cos, sin = self.rope_cache.get(pos)
-            q = self.apply_rope_single(q, cos, sin)
-            k = self.apply_rope_single(k, cos, sin)
+            q = apply_rope_single(q, cos, sin)
+            k = apply_rope_single(k, cos, sin)
         
         if kv_cache is not None:
             k_all = torch.cat([kv_cache.k, k], dim = 2)
@@ -60,3 +60,27 @@ class CausalSelfAttentionModern(nn.Module):
         
         if self.sliding_window is not None and k_all.size(2) > (self.sliding_window + self.attention_sink):
             s = self.attention_sink
+            k_all = torch.cat([k_all[:, :, :s, :], k_all[:, :, -self.sliding_window:, :]], dim=2)
+            v_all = torch.cat([v_all[:, :, :s, :], v_all[:, :, -self.sliding_window:, :]], dim=2)
+        
+        # ----- GQA expand : repeat K / V heads to match Q heads before attention ----
+        if self.n_kv_head != self.n_head:
+            k_attn = k_all.repeat_interleave(self.group_size, dim=1)
+            v_attn = v_all.repeat_interleave(self.group_size, dim=1)
+        else:
+            k_attn, v_attn = k_all, v_all
+        
+        is_casual = kv_cache is None
+        y = F.scaled_dot_product_attention(q, k_attn, v_attn, attn_mask=None,
+                                           dropout_p=self.dropout.p if self.training else 0.0,
+                                           is_causal=is_casual)
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
+        y = self.proj(y)
+
+        if kv_cache is not None:
+            k_new = torch.cat([kv_cache.k, k], dim=2)
+            v_new = torch.cat([kv_cache.v, v], dim=2)
+        else:
+            k_new, v_new = k, v
+        new_cache = KVCache(k_new, v_new)
+        return y, new_cache
