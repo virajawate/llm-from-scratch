@@ -19,7 +19,7 @@ class GPTModern(nn.Module):
         self.tok_emb = nn.Embedding(vocab_size, n_embd)
         self.drop = nn.Dropout(dropout)
         self.blocks = nn.ModuleList([
-            TransformerBlockModern(n_embd, n_head, dropout, use_rmsnorm, use_swiglu, rope, max_pos, sliding_window, n_kv_head)
+            TransformerBlockModern(n_embd, n_head, dropout, use_rmsnorm, use_swiglu, rope, max_pos, sliding_window, attention_sink, n_kv_head)
             for _ in range(n_layer)
         ])
         self.ln_f = nn.Identity() if use_rmsnorm else nn.LayerNorm(n_embd)
@@ -29,12 +29,12 @@ class GPTModern(nn.Module):
         B, T = idx.shape
         assert T <= self.block_size
         pos = torch.arange(0, T, device=idx.device).unsqueeze(0)
-        x = self.tok_embd(idx)
+        x = self.tok_emb(idx)
         x = self.drop(x)
         new_caches = []
         for i, blk in enumerate(self.blocks):
             cache = None if kv_cache_list is None else kv_cache_list[i]
-            x, cache = blk(x, kv_cache=cache, start_pos = start_pos)
+            x, cache = blk(x, kv_cache=cache, start_pos=start_pos)
             new_caches.append(cache)
         x = self.ln_f(x)
         logits = self.head(x)
