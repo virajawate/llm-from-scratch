@@ -12,9 +12,9 @@ python orchestrator.py --visualize
 
 # Run `part_2` locally
 ```sh
-    cd part_tow
-    python train.py --data tiny.txt --steps 300 --sample_every 100
-    python sample.py --ckpnt runs/min-gpt/model_final.py --token 200 --prompt "Where are you going"
+cd part_2
+python train.py --data tiny.txt --steps 300 --sample_every 100
+python sample.py --ckpnt runs/min-gpt/model_final.py --token 200 --prompt "Where are you going"
 ```
 [Part2_output](part_2/PARTTWO_README.md)
 
