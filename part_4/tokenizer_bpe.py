@@ -14,3 +14,20 @@ class BPETTokenizer:
     Trains on a text file or a folder of .txt files.
     Saves merges/vocab to output_dir.
     """
+    def __init__(self, vocab_size:int = 32000, special_tokens: List[str] | None = None):
+        pass
+
+    def train(self, data_path: Union[str, Path]):
+        pass
+
+    def save(self, output_dir:Union[str,Path]):
+        pass
+
+    def load(self, dir_path:Union[str, Path]):
+        pass
+
+    def encode(self, text: str):
+        pass
+
+    def decode(self, ids):
+        pass
