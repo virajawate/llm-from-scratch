@@ -4,7 +4,7 @@ Repository Layout
 Part 4/
     []orchestrator.py
     [x]tokenizer_bpe.py
-    []dataset_bpe.py
+    [x]dataset_bpe.py
     []le_scheduler.py
     []amp_accum.py
     []checkpointing.py
