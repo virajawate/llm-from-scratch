@@ -35,3 +35,24 @@ def _log_hparams_tb(logger, args, total_steps):
         logger.hparams(h, {"meta/total_steps" : float(total_steps)})
     except Exception:
         pass
+
+def _maybe_log_graph_tb(logger, model, xb, yb):
+    if not hasattr(logger, "graph"):
+        return
+    try:
+        class _TensorOnly(nn.Module):
+            def __init__(self, m):
+                super().__init__(); self.m = m.eval()
+            def forward(self, x, y = None):
+                output = self.m(x, y) if y is not None else self.m(x)
+                if isinstance(output, (list, tuple)):
+                    for o in output:
+                        if torch.is_tensor(o):
+                            return o
+                    return output[0]
+                return output
+        
+        wrapped = _TensorOnly(model).to(xb.device)
+        logger.graph(wrapped, (xb, yb))
+    except Exception:
+        pass
