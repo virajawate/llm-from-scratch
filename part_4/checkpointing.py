@@ -168,7 +168,15 @@ def _verify_model_matches(model, cfg:Dict[str, Any]) -> Tuple[bool, str]:
         "vocab_size" : int(model.tok_emb.num_embeddings),
     }
     first_blk = model.blocks[0]
+    got.update({
+        "n_head": int(first_blk.attn.n_head),
+        "n_embd": int(first_blk.attn.n_head * first_blk.attn.d_head),
+        "n_kv_head": int(getattr(first_blk.attn, "n_kv_head", first_blk.attn.n_head)),
+    })
+    diffs = [f"{k}: ckpt={expected[k]} vs model={got[k]}" for k in expected if expected[k] != got[k]]
 
+    if diffs:
+        return False, "Architecture Mismatch: \n" + "\n ".join(diffs)
     return True, "ok"
 
 def save_checkpoint(model, optimizer, scheduler, amp, step:int, output_dir:str, 
