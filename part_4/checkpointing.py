@@ -149,7 +149,50 @@ def _log_samples_tb(logger, model, tok, xb, device, step:int, max_new_tokens:int
     except Exception:
         pass
 
+def save_checkpoint(model, optimizer, scheduler, amp, step:int, output_dir:str, 
+                    tokenizer_dir:str | None = None, config: dict | None = None):
+    output = Path(output_dir); output.mkdir(parents=True, exist_ok=True)
 
+    if hasattr(model, "config"):
+        cfg_obj = model.config
+        cfg = dict(cfg_obj) if isinstance(cfg_obj, dict) else getattr(cfg_obj, "__dict__", None) or _extract_config_from_model(model)
+    else:
+        cfg = config if config is not None else _extract_config_from_model(model)
+    torch.save({
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict() if optimizer is not None else None,
+        "scheduler": scheduler.state_dict() if hasattr(scheduler, "state_dict") else None,
+        "amp_scaler": amp.scaler.state_dict() if amp and getattr(amp, "scaler", None) else None,
+        "step": int(step),
+        "config": cfg,
+        "version": "part4-v2"
+    }, output / DEF_NAME)
+    
+    if tokenizer_dir is not None:
+        (output / "tokenizer_dir.txt").write_text(tokenizer_dir)
+
+def load_checkpoint(model, path:str, optimizer=None, scheduler=None, amp=None, strict:bool=True):
+    ckpt = torch.load(path, map_location="cpu")
+    cfg = ckpt.get("config")
+    if cfg:
+        ok, msg = _verify_model_matches(model, cfg)
+        if not ok:
+            raise RuntimeError(msg + "\nRebuild the model with this config, or load with strict = False.")
+    else:
+        print("[compat] Warning: checkpoint has on config : cannot verify architecture.")
+    
+    missing, unexpected = model.load_state_dict(ckpt["model"], strict=strict)
+    if strict and (missing or unexpected):
+        raise RuntimeError(f"State dict mismatch:\n missing: {missing}\n unexpected: {unexpected}")
+    
+    if optimizer is not None and ckpt.get("optimizer") is not None:
+        optimizer.load_state_dict(ckpt["optimizer"])
+    if optimizer is not None and ckpt.get("scheduler") is not None and hasattr(scheduler, "load_state_dict"):
+        scheduler.load_state_dict(ckpt["scheduler"])
+    if optimizer is not None and ckpt.get("amp_scaler") is not None and hasattr(amp, "scaler", None):
+        amp.scaler.load_state_dict(ckpt["amp_scaler"])
+    
+    return ckpt.get("step", 0)
 
 # ---------------- Checkpoint Save Utils -------------
 def checkpoint_paths(output_dir:Path, step:int):
@@ -161,7 +204,7 @@ def atomic_save_all(model, optim, sched, amp, step:int, output_dir:Path,
     Write model_last.pt (with config) + a rolling pre-step copy.
     """
     save_checkpoint(model, optim, sched, amp, step, str(output_dir), tok_dir, config=config)
-    pre_step, last = checkpoint_paths(output_dir=output_dir, step)
+    pre_step, last = checkpoint_paths(output_dir=output_dir, step=step)
     try:
         shutil.copy2(last, pre_step)
     except Exception:
