@@ -149,6 +149,28 @@ def _log_samples_tb(logger, model, tok, xb, device, step:int, max_new_tokens:int
     except Exception:
         pass
 
+
+def _verify_model_matches(model, cfg:Dict[str, Any]) -> Tuple[bool, str]:
+    """
+    Return (ok, message).
+    """
+    expected = {
+        "block_size": cfg.get("block_size"),
+        "n_layer": cfg.get("n_layer"),
+        "n_head": cfg.get("n_head"),
+        "n_embd": cfg.get("n_embd"),
+        "vocab_size": cfg.get("vocab_size"),
+        "n_kv_head": cfg.get("n_kv_head", cfg.get("n_head")),
+    }
+    got = {
+        "block_size" : int(getattr(model, "block_size", -1)),
+        "n_layer" : int(len(model.blocks)),
+        "vocab_size" : int(model.tok_emb.num_embeddings),
+    }
+    first_blk = model.blocks[0]
+
+    return True, "ok"
+
 def save_checkpoint(model, optimizer, scheduler, amp, step:int, output_dir:str, 
                     tokenizer_dir:str | None = None, config: dict | None = None):
     output = Path(output_dir); output.mkdir(parents=True, exist_ok=True)
