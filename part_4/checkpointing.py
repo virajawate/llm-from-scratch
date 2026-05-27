@@ -149,3 +149,27 @@ def _log_samples_tb(logger, model, tok, xb, device, step:int, max_new_tokens:int
     except Exception:
         pass
 
+
+
+# ---------------- Checkpoint Save Utils -------------
+def checkpoint_paths(output_dir:Path, step:int):
+    return output_dir / f"model_step{step:07d}.pt", output_dir / "model_last.pt"
+
+def atomic_save_all(model, optim, sched, amp, step:int, output_dir:Path,
+                    tok_dir:str | None, keep_last_k:int, config:dict):
+    """
+    Write model_last.pt (with config) + a rolling pre-step copy.
+    """
+    save_checkpoint(model, optim, sched, amp, step, str(output_dir), tok_dir, config=config)
+    pre_step, last = checkpoint_paths(output_dir=output_dir, step)
+    try:
+        shutil.copy2(last, pre_step)
+    except Exception:
+        pass
+
+    try:
+        ckpts = sorted(output_dir.glob("model_step*.pt"))
+        for old in ckpts[:-keep_last_k]:
+            old.unlink(missing_ok=True)
+    except Exception:
+        pass
