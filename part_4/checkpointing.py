@@ -149,6 +149,49 @@ def _log_samples_tb(logger, model, tok, xb, device, step:int, max_new_tokens:int
     except Exception:
         pass
 
+def _extract_config_from_model(model) -> dict:
+    """
+    Best - Effort extraction of GPTModern like config including GQA fields.
+    """
+    cfg = {}
+    try:
+        tok_emb = getattr(model, "tok_emb", None)
+        blocks = getattr(model, "blocks", None)
+        if tok_emb is None or not blocks:
+            return cfg
+        
+        try:
+            from swiglu import SwiGLU
+        except Exception:
+            class SwiGLU: pass
+        
+        cfg["vocab_size"] = int(tok_emb.num_embeddings)
+        cfg["block_size"] = int(getattr(model, "block_size", 0) or 0)
+        cfg["n_layer"] = int(len(blocks))
+
+        first_blk = blocks[0]
+        attn = getattr(first_blk, "attn", None)
+        if attn is None:
+            return cfg
+        
+        cfg["n_head"] = int(getattr(attn, "n_head"))
+        d_head = int(getattr(attn, "d_head"))
+        cfg["n_embd"] = int(cfg["n_head"] * d_head)
+        cfg["n_kv_head"] = int(getattr(attn, "n_kv_head", cfg["n_head"]))
+
+        drop = getattr(attn, "dropout", None)
+        cfg["dropout"] = float(getattr(drop, "p", 0.0)) if drop is not None else 0.0
+        cfg["use_rmsnorm"] = isinstance(getattr(model, "ln_f", None), nn.Identity)
+        cfg["use_swiglu"] = isinstance(getattr(first_blk, "ffn", None), SwiGLU)
+
+        for k in ("rope", "max_pos", "sliding_window", "attention_sink"):
+            if hasattr(attn, k):
+                val = getattr(attn, k)
+                cfg[k] = int(val) if isinstance(val, bool) else val
+    except Exception:
+        return {}
+    return cfg
+
 
 def _verify_model_matches(model, cfg:Dict[str, Any]) -> Tuple[bool, str]:
     """
