@@ -7,7 +7,7 @@ Part 4/
     [x]dataset_bpe.py
     [x]lr_scheduler.py
     [x]amp_accum.py
-    []checkpointing.py
+    [x]checkpointing.py
     []logger.py
     []train.py
     []sample.py
