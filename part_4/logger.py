@@ -74,25 +74,59 @@ class TBLogger(NoopLogger):
 
 
     def hist(self, tag:str, values:Any, step:Optional[int]=None, bins:str="tensorflow"):
-        pass
+        if not self.w: return
+        try:
+            import torch
+            if isinstance(values, torch.Tensor):
+                values = values.detach().cpu()
+            self.w.add_histogram(tag, values, global_step=step, bins=bins)
+        except Exception:
+            pass
 
     def text(self, tag:str, text:str, step: Optional[int] = None):
-        pass
+        if not self.w:return
+        try:
+            self.w.add_text(tag, text, global_step=step)
+        except Exception:
+            pass
 
-    def image(self, tag:str, img, step:Optional[int]=None):
-        pass
+    def image(self, tag:str, img, step: Optional[int] = None):
+        """
+        img : torch.Tensor [C, H, W] or [H, W, C] or numpy array
+        """
+        if not self.w:return
+        try:
+            self.w.add_image(tag, img, global_step=step, dataformats="CHW" if getattr(img, "ndim", 0) == 3 and img.shape[0] in (1, 3) else "HWC")
+        except Exception:
+            pass
 
     def graph(self, model, example_input):
-        pass
+        if not self.w: return 
+        try:
+            if not isinstance(example_input, tuple):
+                example_input = (example_input,)
+            self.w.add_graph(model, example_input)
+        except Exception:
+            pass
 
     def hparams(self, hparams:Dict[str, Any], metrics_once:Optional[Dict[str, float]]= None):
-        pass
+        if not self.w or self.hparams_logged:
+            return
+        try:
+            self.w.add_hparams(hparams, metrics_once or {}, run_name="_hparams")
+            self.hparams_logged = True
+        except Exception:
+            pass
 
     def flush(self):
-        pass
+        if self.w:
+            try: self.w.flush()
+            except Exception: pass
 
     def close(self):
-        pass
+        if self.w:
+            try: self.w.close()
+            except Exception: pass
 
 class WBLogger(NoopLogger):
     def __init__(self, project:str, run_name:str|None=None):
