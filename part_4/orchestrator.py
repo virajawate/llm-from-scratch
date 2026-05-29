@@ -8,7 +8,7 @@ Part 4/
     [x]lr_scheduler.py
     [x]amp_accum.py
     [x]checkpointing.py
-    []logger.py
+    [x]logger.py
     []train.py
     []sample.py
     tests/
