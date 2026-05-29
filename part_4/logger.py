@@ -130,10 +130,20 @@ class TBLogger(NoopLogger):
 
 class WBLogger(NoopLogger):
     def __init__(self, project:str, run_name:str|None=None):
-        pass
+        try:
+            import wandb
+            wandb.init(project=project, name=run_name)
+            self.wb = wandb
+        except Exception:
+            self.wb = None
 
     def log(self, **kv):
-        pass
+        if self.wb: self.wb.log(kv)
 
 def init_logger(which:str, output_dir:str="runs/part_4"):
-    pass
+    if which == "tensorboard":
+        tb = TBLogger(output_dir=output_dir)
+        return tb if tb.w is not None else NoopLogger()
+    if which == "wandb":
+        return WBLogger(project="llm-part_4")
+    return NoopLogger()
