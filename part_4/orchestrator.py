@@ -10,7 +10,7 @@ Part 4/
     [x]checkpointing.py
     [x]logger.py
     [x]train.py
-    []sample.py
+    [x]sample.py
     tests/
         []test_tokenizer.py
         []test_scheduler.py
