@@ -8,7 +8,7 @@ try:
 except:
     ByteLevelBPETokenizer = None
 
-class BPETTokenizer:
+class BPETokenizer:
     """
     Minimal BPE wrapper (Huggingface Tokenizer).
     Trains on a text file or a folder of .txt files.

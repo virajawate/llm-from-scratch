@@ -9,7 +9,7 @@ Part 4/
     [x]amp_accum.py
     [x]checkpointing.py
     [x]logger.py
-    []train.py
+    [x]train.py
     []sample.py
     tests/
         []test_tokenizer.py
