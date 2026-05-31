@@ -14,7 +14,7 @@ Part 4/
     tests/
         []test_tokenizer.py
         []test_scheduler.py
-        []test_resume_shapes.py
+        [X]test_resume_shapes.py
 ----
 Run inside part_4:
     cd part_4
