@@ -12,7 +12,7 @@ Part 4/
     [x]train.py
     [x]sample.py
     tests/
-        []test_tokenizer.py
+        [X]test_tokenizer.py
         []test_scheduler.py
         [X]test_resume_shapes.py
 ----
