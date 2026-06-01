@@ -38,7 +38,7 @@ def main():
         block_size = sd['pos_emb.weight'].shape[0] if 'pos_emb.weight' in sd else 256
 
         import re
-        layer_ids = {int(m.group(1)) for k in sd.keys() if (m := re.match(f"blocks/.(\d+)\.", k))}
+        layer_ids = {int(m.group(1)) for k in sd.keys() if (m := re.match(r"blocks\.(\d+)\.", k))}
         n_layer = max(layer_ids) + 1 if layer_ids else 1
         n_head = 8 if C % 8 == 0 else 4 if C % 4 == 0 else 2 if C % 2 == 0 else 1
         cfg = dict(

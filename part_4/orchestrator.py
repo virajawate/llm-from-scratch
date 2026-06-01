@@ -44,6 +44,6 @@ if __name__ == '__main__':
 
     if args.demo:
         run("python train.py --data ../part_2/dataset/AliceAdventure.txt --output ./runs/part4_demo --bpe --vocab_size 8000 --epochs 1 --steps 300 --batch_size 16 --block_size 128 --n_layer 2 --n_head 2 --n_embd 128 --mixed_precision --grad_accum_steps 2 --log tensorboard")
-        run("python sample.py --ckpt runs/part4_demo/model_last.pt --tokens 100 --prompt 'Generate a short story'")
+        run("python sample.py --ckpt runs/part4_demo/model_last.pt --tokens 100 --prompt 'Who is Alice'")
     
     print("\n-----Part 4 Check Complete-----\n")
