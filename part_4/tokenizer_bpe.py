@@ -52,13 +52,13 @@ class BPETokenizer:
                 raise FileNotFoundError(f"Could not find vocab / merges in {dir_path}")
             vocab = vs[0]
             merges = ms[0]
-            tok = Tokenizer.from_file(str(tokenizer))
-            self._tok = tok
-            meta_file = dir_path / "bpe_meta.json"
-            if meta_file.exists():
-                meta = json.loads(meta_file.read_text())
-                self.vocab_size = meta.get("vocab_size", self.vocab_size)
-                self.special_tokens = meta.get("special_tokens", self.special_tokens)
+        tok = Tokenizer.from_file(str(tokenizer))
+        self._tok = tok
+        meta_file = dir_path / "bpe_meta.json"
+        if meta_file.exists():
+            meta = json.loads(meta_file.read_text())
+            self.vocab_size = meta.get("vocab_size", self.vocab_size)
+            self.special_tokens = meta.get("special_tokens", self.special_tokens)
 
     def encode(self, text: str):
         ids = self._tok.encode(text).ids

@@ -125,80 +125,80 @@ def main():
         cfg_build = ckpt["config"]
         if cfg_build.get("vocab_size") != vocab_size:
             raise RuntimeError(
-                f"Tokenizer Vocab ({vocab_size}) != checkpoint config vocab ({cfg_build.get("vocab_size")})."
+                f"Tokenizer Vocab ({vocab_size}) != checkpoint config vocab ({cfg_build.get('vocab_size')})."
                 "This deterministic script forbids vocab changes on resume."
             )
-        else:
-            cfg_build = run_cfg_from_args(args, vocab_size)
-        
-        # ----- init model/opt/sched/amp -----
-        model = GPTModern(**cfg_build).to(device)
-        optim = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=0.1)
-        total_steps = min(args.steps, args.epochs * len(train_loader))
-        warmup = min(args.warmup_steps, max(total_steps // 10, 1))
-        sched = WarmupCosineLR(optim, warmup_steps=warmup, total_steps=total_steps, base_lr=args.lr)
-        amp = AmpGrad(optim, accum=args.grad_accum_steps, amp=args.mixed_precision)
+    else:
+        cfg_build = run_cfg_from_args(args, vocab_size)
+    
+    # ----- init model/opt/sched/amp -----
+    model = GPTModern(**cfg_build).to(device)
+    optim = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=0.1)
+    total_steps = min(args.steps, args.epochs * len(train_loader))
+    warmup = min(args.warmup_steps, max(total_steps // 10, 1))
+    sched = WarmupCosineLR(optim, warmup_steps=warmup, total_steps=total_steps, base_lr=args.lr)
+    amp = AmpGrad(optim, accum=args.grad_accum_steps, amp=args.mixed_precision)
 
-        # ----- Strict Resume -----
-        step = 0
-        if have_ckpt:
-            step = load_checkpoint(model, str(ckpt_path), optimizer=optim, scheduler=sched, amp=amp, strict=True)
-            print(f"[Resume] Loaded Checkpoint at step {step}")
+    # ----- Strict Resume -----
+    step = 0
+    if have_ckpt:
+        step = load_checkpoint(model, str(ckpt_path), optimizer=optim, scheduler=sched, amp=amp, strict=True)
+        print(f"[Resume] Loaded Checkpoint at step {step}")
 
-        # ----- Logging -----
-        logger = init_logger(args.log, output_dir=str(output_dir))
-        _log_hparams_tb(logger, args, total_steps)
-        if _is_tb(logger):
-            try:
-                ex_x, ex_y = next(iter(train_loader))
-                _maybe_log_graph_tb(logger, model, ex_x.to(device), ex_y.to(device))
-            except Exception:
-                pass
-        
-        # ----- Graceful Save on SIGINT / SIGTERM -----
-        save_requested = {"flag": False}
-        def _on_term(sig, frame): save_requested["flag"] = True
-        signal.signal(signal.SIGTERM, _on_term)
-        signal.signal(signal.SIGINT, _on_term)
+    # ----- Logging -----
+    logger = init_logger(args.log, output_dir=str(output_dir))
+    _log_hparams_tb(logger, args, total_steps)
+    if _is_tb(logger):
+        try:
+            ex_x, ex_y = next(iter(train_loader))
+            _maybe_log_graph_tb(logger, model, ex_x.to(device), ex_y.to(device))
+        except Exception:
+            pass
+    
+    # ----- Graceful Save on SIGINT / SIGTERM -----
+    save_requested = {"flag": False}
+    def _on_term(sig, frame): save_requested["flag"] = True
+    signal.signal(signal.SIGTERM, _on_term)
+    signal.signal(signal.SIGINT, _on_term)
 
-        # ----- Train Loop -----
-        model.train()
-        while step < args.step:
-            for xb, yb in train_loader:
-                if step >= args.steps: break
-                if save_requested["flag"]:
+    # ----- Train Loop -----
+    model.train()
+    while step < args.steps:
+        for xb, yb in train_loader:
+            if step >= args.steps: break
+            if save_requested["flag"]:
+                atomic_save_all(model, optim, sched, amp, step, output_dir, tok_dir, args.keep_last_k, cfg_build)
+                print(f"[Signal] Saved Checkpoint at step {step} to {output_dir}. Exiting.")
+                return
+            
+            it_t0 = time.time()
+            xb, yb = xb.to(device), yb.to(device)
+            with torch.cuda.amp.autocast(enabled=amp.amp):
+                logits, loss, _ = model(xb, yb)
+            amp.backward(loss)
+
+            if amp.should_step():
+                amp.step(); amp.zero_grad()
+                lr = sched.step()
+                step += 1
+
+                # Periodic Checkpoints 
+                if step % args.save_every == 0:
                     atomic_save_all(model, optim, sched, amp, step, output_dir, tok_dir, args.keep_last_k, cfg_build)
-                    print(f"[Signal] Saved Checkpoint at step {step} to {output_dir}. Exiting.")
-                    return
+                    if _is_tb(logger):
+                        logger.text("meta/checkpoint", f"Saved at step {step}", step)
                 
-                it_t0 = time.time()
-                xb, yb = xb.to(device), yb.to(device)
-                with torch.cuda.amp.autocast(enabled=amp.amp):
-                    logits, loss, _ = model(xb, yb)
-                amp.backward(loss)
-
-                if amp.should_step():
-                    amp.step(); amp.zero_grad()
-                    lr = sched.step()
-                    step += 1
-
-                    # Periodic Checkpoints 
-                    if step % args.save_every == 0:
-                        atomic_save_all(model, optim, sched, amp, step, output_dir, tok_dir, args.keep_last_k, cfg_build)
-                        if _is_tb(logger):
-                            logger.text("meta/checkpoint", f"Saved at step {step}", step)
-                    
-                    # Logging
-                    if step % 50 == 0:
-                        logger.log(step=step, loss=float(loss.item()), lr=float(lr))
-                        _log_runtime(logger, step, it_t0, xb, device)
-                        _log_model_stats(logger, model, step, do_hist=False)
-                        _maybe_log_attention(logger, model, xb, step, every=100)
-                        _log_samples_tb(logger, model, tok, xb, device, step, max_new_tokens=64)
-        
-        # ----- Final Save -----
-        atomic_save_all(model, optim, sched, amp, step, output_dir, tok_dir, args.keep_last_k, cfg_build)
-        print(f"Saved Checkpoint to {output_dir}/model_last.pt")
+                # Logging
+                if step % 50 == 0:
+                    logger.log(step=step, loss=float(loss.item()), lr=float(lr))
+                    _log_runtime(logger, step, it_t0, xb, device)
+                    _log_model_stats(logger, model, step, do_hist=False)
+                    _maybe_log_attention(logger, model, xb, step, every=100)
+                    _log_samples_tb(logger, model, tok, xb, device, step, max_new_tokens=64)
+    
+    # ----- Final Save -----
+    atomic_save_all(model, optim, sched, amp, step, output_dir, tok_dir, args.keep_last_k, cfg_build)
+    print(f"Saved Checkpoint to {output_dir}/model_last.pt")
 
 if __name__ == "__main__":
     main()

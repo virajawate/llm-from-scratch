@@ -7,7 +7,7 @@ from kv_cache import KVCache
 
 class CausalSelfAttentionModern(nn.Module):
     def __init__(self, n_embd:int, n_head:int, dropout:float=0.0,
-                 rope:bool=True, max_pos:int=4096,
+                 rope:bool=True, max_pose:int=4096,
                  sliding_window:int | None = None, attention_sink:int = 0,
                  n_kv_head:int | None = None):
         super().__init__()
@@ -26,13 +26,13 @@ class CausalSelfAttentionModern(nn.Module):
 
         self.use_rope = rope
         self.rope_cache: RoPECache | None = None
-        self.max_pos = max_pos
+        self.max_pose = max_pose
         self.sliding_window = sliding_window
         self.attention_sink = attention_sink
         
     def _maybe_init_rope(self, device):
         if self.use_rope and self.rope_cache is None:
-            self.rope_cache = RoPECache(self.d_head, self.max_pos, device = device)
+            self.rope_cache = RoPECache(self.d_head, self.max_pose, device = device)
     
     def forward(self, x:torch.Tensor, kv_cache: KVCache | None = None, start_pos: int = 0):
         """
@@ -40,7 +40,7 @@ class CausalSelfAttentionModern(nn.Module):
         If kv_cache given, we assume generation (T small, often 1).
         """
         B, T, C = x.shape
-        self._maybe_init_rope(x .device)
+        self._maybe_init_rope(x.device)
 
         q = self.wq(x).view(B, T, self.n_head, self.d_head).transpose(1, 2)
         k = self.wk(x).view(B, T, self.n_kv_head, self.d_head).transpose(1, 2)

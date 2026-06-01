@@ -12,5 +12,5 @@ def test_bpe_train_save_load_roundtrip():
         tok.save(output)
         tok2 = BPETokenizer()
         tok2.load(output)
-        ids = tok2.encode('Hellow World')
+        ids = tok2.encode('Hello World')
         assert isinstance(ids, list) and len(ids) > 0

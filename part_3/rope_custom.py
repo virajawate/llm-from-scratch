@@ -4,14 +4,14 @@ import math
 
 class RoPECache:
     """
-    PreCompute cos / sin for position up to max_pos for even head_dim.
+    PreCompute cos / sin for position up to max_pose for even head_dim.
     """
-    def __init__(self, head_dim:int, max_pos:int, base:float = 1e4, device:torch.device | None = None):
+    def __init__(self, head_dim:int, max_pose:int, base:float = 1e4, device:torch.device | None = None):
         assert head_dim % 2 == 0, "RoPE head_dim must be even."
         self.head_dim = head_dim
         self.base = base
         self.device = device
-        self._build(max_pos)
+        self._build(max_pose)
     
     def get(self, positions: torch.Tensor):
         """
@@ -20,19 +20,19 @@ class RoPECache:
         if positions.dim() == 2:
             positions = positions[0]
         need = int(positions.max().item()) + 1 if positions.numel() > 0 else 1
-        if need > self.max_pos:
-            self._build(max(need, int(self.max_pos * 2)))
+        if need > self.max_pose:
+            self._build(max(need, int(self.max_pose * 2)))
         cos = self.cos[positions]
         sin = self.sin[positions]
         return cos, sin
     
-    def _build(self, max_pos: int):
+    def _build(self, max_pose: int):
         """
-        (Re)build cos / sin tables for a new max_pos.
+        (Re)build cos / sin tables for a new max_pose.
         """
-        self.max_pos = max_pos
+        self.max_pose = max_pose
         inv_frq = 1.0 / (1e4 ** (torch.arange(0, self.head_dim, 2, device = self.device).float() / self.head_dim))
-        t = torch.arange(max_pos, device=self.device).float()
+        t = torch.arange(max_pose, device=self.device).float()
         frq = torch.outer(t, inv_frq)
         self.cos = torch.cos(frq)
         self.sin = torch.sin(frq)

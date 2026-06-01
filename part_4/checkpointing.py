@@ -184,7 +184,7 @@ def _extract_config_from_model(model) -> dict:
         cfg["use_rmsnorm"] = isinstance(getattr(model, "ln_f", None), nn.Identity)
         cfg["use_swiglu"] = isinstance(getattr(first_blk, "ffn", None), SwiGLU)
 
-        for k in ("rope", "max_pos", "sliding_window", "attention_sink"):
+        for k in ("rope", "max_pose", "sliding_window", "attention_sink"):
             if hasattr(attn, k):
                 val = getattr(attn, k)
                 cfg[k] = int(val) if isinstance(val, bool) else val
@@ -260,9 +260,9 @@ def load_checkpoint(model, path:str, optimizer=None, scheduler=None, amp=None, s
     
     if optimizer is not None and ckpt.get("optimizer") is not None:
         optimizer.load_state_dict(ckpt["optimizer"])
-    if optimizer is not None and ckpt.get("scheduler") is not None and hasattr(scheduler, "load_state_dict"):
+    if scheduler is not None and ckpt.get("scheduler") is not None and hasattr(scheduler, "load_state_dict"):
         scheduler.load_state_dict(ckpt["scheduler"])
-    if optimizer is not None and ckpt.get("amp_scaler") is not None and hasattr(amp, "scaler", None):
+    if amp is not None and ckpt.get("amp_scaler") is not None and getattr(amp, "scaler", None):
         amp.scaler.load_state_dict(ckpt["amp_scaler"])
     
     return ckpt.get("step", 0)
