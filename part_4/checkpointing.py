@@ -89,7 +89,7 @@ def _maybe_log_attention(logger, model, xb, step:int, every:int=100):
         return
     try:
         import torch
-        with torch.no_grad(), torch.cuda.amp.autocast(enabled=False):
+        with torch.no_grad(), torch.amp.autocast('cuda', enabled=False):
             x = model.tok_emb(xb)
             x = model.drop(x)
             B, T, _ = x.shape

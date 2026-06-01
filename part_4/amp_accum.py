@@ -15,7 +15,7 @@ class AmpGrad:
         self.optim = optimizer
         self.accum = max(1, accum)
         self.amp = amp and torch.cuda.is_available()
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+        self.scaler = torch.amp.GradScaler('cuda',enabled=self.amp)
         self._n = 0
     
     def backward(self, loss:torch.Tensor):

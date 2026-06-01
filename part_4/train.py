@@ -173,7 +173,7 @@ def main():
             
             it_t0 = time.time()
             xb, yb = xb.to(device), yb.to(device)
-            with torch.cuda.amp.autocast(enabled=amp.amp):
+            with torch.amp.autocast('cuda', enabled=amp.amp):
                 logits, loss, _ = model(xb, yb)
             amp.backward(loss)
 
