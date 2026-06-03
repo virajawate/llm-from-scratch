@@ -8,8 +8,28 @@ class HybridFFN(nn.Module):
     output : y = a * Dense(x) + (1-a) * MoE(x)
     Use a (- [0, 1] to trade between stability (dense) and capacity (MoE).
     """
-    def __init__(self):
-        pass
+    def __init__(self, 
+                 dim:int, 
+                 alpha:float = 0.5, 
+                 mult:int = 4, 
+                 swiglu:bool = True, 
+                 n_expert:int = 4, 
+                 k:int =1, 
+                 dropout:float = 0.0
+        ):
+        super().__init__()
+        self.alpha = alpha
+        inner = mult * dim
+        self.dense = nn.Sequential(
+            nn.Linear(dim, inner),
+            nn.GELU(),
+            nn.Linear(inner, dim),
+            nn.Dropout(dropout)
+        )
+        self.moe = MoE(dim, n_expert=n_expert, k=k, multi=mult, swiglu=swiglu, dropout=dropout)
 
-    def forward(self):
-        pass
+    def forward(self, x):
+        y_dense = self.dense(x)
+        y_moe, aux = self.moe(x)
+        y = self.alpha * y_dense + (1.0 - self.alpha) * y_moe
+        return y, aux
