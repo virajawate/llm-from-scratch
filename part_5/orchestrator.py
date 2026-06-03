@@ -4,7 +4,7 @@ Part_5/
     [] README_PART5_OUTPUT.md
     [x] gating.py
     [x] expert.py
-    [] moe.py
+    [x] moe.py
     [] block_hybrid.py
     [] demo_moe.py
     tests/
