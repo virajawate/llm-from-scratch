@@ -1,15 +1,16 @@
 """
 Part_5/
-    orchestrator.py
-    README_PART5_OUTPUT.md
-    gating.py
-    moe.py
-    block_hybrid.py
-    demo_moe.py
+    [] orchestrator.py
+    [] README_PART5_OUTPUT.md
+    [x] gating.py
+    [x] expert.py
+    [] moe.py
+    [] block_hybrid.py
+    [] demo_moe.py
     tests/
-        test_gate_shapes.py
-        test_moe_forward.py
-        test_hybrid_block.py
+        []test_gate_shapes.py
+        []test_moe_forward.py
+        []test_hybrid_block.py
 
 Run from part_5/
 ---
