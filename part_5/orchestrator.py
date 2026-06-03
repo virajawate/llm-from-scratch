@@ -5,7 +5,7 @@ Part_5/
     [x] gating.py
     [x] expert.py
     [x] moe.py
-    [] block_hybrid.py
+    [x] block_hybrid.py
     [] demo_moe.py
     tests/
         []test_gate_shapes.py
