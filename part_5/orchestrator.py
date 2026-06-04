@@ -9,8 +9,8 @@ Part_5/
     [x] demo_moe.py
     tests/
         [x]test_gate_shapes.py
-        []test_moe_forward.py
-        []test_hybrid_block.py
+        [x]test_moe_forward.py
+        [x]test_hybrid_block.py
 
 Run from part_5/
 ---
