@@ -8,7 +8,7 @@ Part_5/
     [x] block_hybrid.py
     [x] demo_moe.py
     tests/
-        []test_gate_shapes.py
+        [x]test_gate_shapes.py
         []test_moe_forward.py
         []test_hybrid_block.py
 
