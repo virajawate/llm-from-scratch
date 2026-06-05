@@ -34,7 +34,7 @@ if __name__ == "__main__":
     p.add_argument("--demo", action="store_true", help="run a tiny MoE demo.")
     args = p.parse_args()
 
-    run("python -m pytest -q tests/test_gate_shape.py")
+    run("python -m pytest -q tests/test_gate_shapes.py")
     run("python -m pytest -q tests/test_moe_forward.py")
     run("python -m pytest -q tests/test_hybrid_block.py")
 
