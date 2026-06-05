@@ -25,7 +25,7 @@ class TopKGate(nn.Module):
         logits = self.w_g(x)
         probs = torch.softmax(logits, dim = -1)
         topk_vals, topk_idx = torch.topk(probs, k = self.k, dim = -1)
-        S, E = probs.size(0). probs.size(1)
+        S, E = probs.size(0), probs.size(1)
         importance = probs.mean(dim=0)
         hard1 = topk_idx[:, 0]
         load = torch.zeros(E, device = x.device)
