@@ -18,8 +18,8 @@
 Part_5 checks complete
 ```
 
- ```sh
- (llm_env) C:\Coding\LLMfromScratch\llm-from-scratch\part_5>python orchestrator.py --demo
+```sh
+(llm_env) C:\Coding\LLMfromScratch\llm-from-scratch\part_5>python orchestrator.py --demo
 
 >> python -m pytest -q tests/test_gate_shapes.py
 .                                                                                                                 [100%]
@@ -39,4 +39,4 @@ Primary expert load (counts) : [3, 2, 1, 0]
 
 Part_5 checks complete.
 
- ```
+```
