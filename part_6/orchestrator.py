@@ -1,7 +1,7 @@
 """
 part_6/
     - []orchestrator.py
-    - []formatters.py
+    - [X]formatters.py
     - []dataset_sft.py
     - []collator_sft.py
     - []curriculum.py
