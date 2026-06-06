@@ -36,3 +36,11 @@ python train.py --data ../part_2/dataset/VirajAwate.txt --output ./runs/part4_de
 python sample.py --ckpt runs/part4_demo/model_last.pt --tokens 100 --prompt 'Who is Viraj'
 ```
 [Part4_output](part_4/PARTFOUR_README.md)
+
+# Run `part_5` locally
+```sh
+cd part_5
+
+python orchestrator.py --demo
+```
+[Part5_output](part_5/PARTFOUR_README.md)
