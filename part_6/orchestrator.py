@@ -5,7 +5,7 @@ part_6/
     - [X]dataset_sft.py
     - [x]collator_sft.py
     - [x]curriculum.py
-    - []evaluate.py
+    - [x]evaluate.py
     - []train_sft.py
     - []sample_sft.py
     - tests/
