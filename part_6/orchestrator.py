@@ -4,7 +4,7 @@ part_6/
     - [X]formatters.py
     - [X]dataset_sft.py
     - [x]collator_sft.py
-    - []curriculum.py
+    - [x]curriculum.py
     - []evaluate.py
     - []train_sft.py
     - []sample_sft.py
