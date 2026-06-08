@@ -32,7 +32,7 @@ class SFTCollator:
             try:
                 self.tok = BPETokenizer(vocab_size=8000)
                 if bpe_dir:
-                    self.tok.load(bpe_dir):
+                    self.tok.load(bpe_dir)
                     print(f"Loaded BPE Tokenizer from {bpe_dir}")
                 else:
                     pass
