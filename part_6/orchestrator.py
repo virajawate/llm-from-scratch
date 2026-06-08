@@ -3,7 +3,7 @@ part_6/
     - []orchestrator.py
     - [X]formatters.py
     - [X]dataset_sft.py
-    - []collator_sft.py
+    - [x]collator_sft.py
     - []curriculum.py
     - []evaluate.py
     - []train_sft.py
