@@ -6,7 +6,7 @@ part_6/
     - [x]collator_sft.py
     - [x]curriculum.py
     - [x]evaluate.py
-    - []train_sft.py
+    - [x]train_sft.py
     - []sample_sft.py
     - tests/
         - []test_formatter.py
