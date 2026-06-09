@@ -7,7 +7,7 @@ part_6/
     - [x]curriculum.py
     - [x]evaluate.py
     - [x]train_sft.py
-    - []sample_sft.py
+    - [x]sample_sft.py
     - tests/
         - []test_formatter.py
         - []test_making.py
