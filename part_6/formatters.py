@@ -5,9 +5,9 @@ We keep very simple templete with clear separators.
 from dataclasses import dataclass
 
 template = (
-    "<s>\n",
+    "<s>\n"
     "### Instruction:\n{instruction}\n\n"
-    "### Response:\n{response}\n"
+    "### Response:\n{response}</s>"
 )
 
 @dataclass

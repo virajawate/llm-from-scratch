@@ -18,7 +18,7 @@ def main():
     p.add_argument('--tokens', type=int, default=80)
     p.add_argument('--temperature', type=float, default=0.2)
     p.add_argument('--cpu', action='store_true')
-    p.add_argument('--bpe_dir', type=str, default='../part_4/runs/part4-demo/tokenizer') # assumes tokenizer exists from Part 4
+    p.add_argument('--bpe_dir', type=str, default='../part_4/runs/part4_demo/tokenizer') # assumes tokenizer exists from Part 4
     args = p.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() and not args.cpu else 'cpu')

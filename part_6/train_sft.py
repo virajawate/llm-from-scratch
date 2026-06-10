@@ -6,7 +6,7 @@ torch.manual_seed(0)
 
 import sys
 from pathlib import Path as _P
-sys.path.append(str(_P(__file__).resolve().parent[1]/'part_3'))
+sys.path.append(str(_P(__file__).resolve().parents[1]/'part_3'))
 from model_modern import GPTModern # NOQA : E402
 
 from dataset_sft import load_tiny_hf
@@ -26,7 +26,7 @@ def main():
     p.add_argument('--n_embd', type=int, default=256)
     p.add_argument('--lr', type=float, default=3e-4)
     p.add_argument('--cpu', action='store_true')
-    p.add_argument('--bpe_dir', type=str, default='../part_4/runs/part4-demo/tokenizer') # assumes tokenizer exists from Part 4
+    p.add_argument('--bpe_dir', type=str, default='../part_4/runs/part4_demo/tokenizer') # assumes tokenizer exists from Part 4
     args = p.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() and not args.cpu else 'cpu')
