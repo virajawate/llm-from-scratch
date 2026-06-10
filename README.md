@@ -43,4 +43,12 @@ cd part_5
 
 python orchestrator.py --demo
 ```
-[Part5_output](part_5/PARTFOUR_README.md)
+[Part5_output](part_5/PARTFIVE_README.md)
+
+# Run `part_6` locally
+```sh
+cd part_6
+
+python orchestrator.py --demo
+```
+[Part5_output](part_6/PARTSIX_README.md)
