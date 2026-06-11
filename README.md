@@ -51,4 +51,4 @@ cd part_6
 
 python orchestrator.py --demo
 ```
-[Part5_output](part_6/PARTSIX_README.md)
+[Part6_output](part_6/PARTSIX_README.md)
