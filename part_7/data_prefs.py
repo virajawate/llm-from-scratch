@@ -31,3 +31,14 @@ def load_preference(split: str = "train[:200]") -> List[PrefExample]:
         except Exception:
             print("Failed to load Anthropic/hh-rlhf")
             pass
+    
+    if not items:
+        items = [
+            PrefExample("Summarize : Scaling laws fo nueral language models."
+                            "Scaling laws describe how preformance improves predictably as model size, data, and compute increase."
+                            "Scaling laws  are when you scale pictures to look bigger."),
+            PrefExample("Give two uses of attention in transformers.",
+                        "It lets the model focus on relevant token and enables parallel context integration across positions.",
+                        "It remembers all past words exactly my computation."),
+        ]
+    return items
