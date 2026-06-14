@@ -30,6 +30,6 @@ class TopKGate(nn.Module):
         hard1 = topk_idx[:, 0]
         load = torch.zeros(E, device = x.device)
         load.scatter_add_(0, hard1, torch.ones_like(hard1, dtype=load.dtype))
-        load = load / max(5,1)
+        load = load / max(S,1)
         aux_loss = (E * (importance * load).sum())
         return topk_idx, topk_vals, aux_loss
