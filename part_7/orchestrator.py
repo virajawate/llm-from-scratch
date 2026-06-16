@@ -4,8 +4,8 @@ Part_7/
     - [x] data_prefs.py
     - [x] collator_rm.py
     - [x] model_reward.py
-    - [] loss_reward.py
-    - [] train_rm.py
+    - [x] loss_reward.py
+    - [x] train_rm.py
     - [] eval_rm.py
     - tests/
         - [] 
