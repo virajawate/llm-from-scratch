@@ -3,7 +3,8 @@ Part_7/
     - [] orchestrator.py
     - [x] data_prefs.py
     - [x] collator_rm.py
-    - [] model_reward.py
+    - [x] model_reward.py
+    - [] loss_reward.py
     - [] train_rm.py
     - [] eval_rm.py
     - tests/
