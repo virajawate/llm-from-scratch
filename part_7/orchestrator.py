@@ -6,10 +6,10 @@ Part_7/
     - [x] model_reward.py
     - [x] loss_reward.py
     - [x] train_rm.py
-    - [] eval_rm.py
+    - [x] eval_rm.py
     - tests/
-        - [] 
-        - [] 
+        - [] test_bt_loss.py
+        - [] test_reward_forward.py
 
 Run the orchestrator
 cd part_7
