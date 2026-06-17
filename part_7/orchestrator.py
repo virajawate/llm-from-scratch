@@ -9,7 +9,7 @@ Part_7/
     - [x] eval_rm.py
     - tests/
         - [x] test_bt_loss.py
-        - [] test_reward_forward.py
+        - [x] test_reward_forward.py
 
 Run the orchestrator
 cd part_7
