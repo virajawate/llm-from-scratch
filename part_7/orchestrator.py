@@ -8,7 +8,7 @@ Part_7/
     - [x] train_rm.py
     - [x] eval_rm.py
     - tests/
-        - [] test_bt_loss.py
+        - [x] test_bt_loss.py
         - [] test_reward_forward.py
 
 Run the orchestrator
