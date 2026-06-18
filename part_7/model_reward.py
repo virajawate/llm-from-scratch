@@ -21,7 +21,7 @@ class RewardModel(nn.Module):
         self.tok_emb = nn.Embedding(vocab_size, n_embd)
         self.pos_emb = nn.Embedding(block_size, n_embd)
         enc_layer = nn.TransformerEncoderLayer(d_model=n_embd, nhead=n_head, dim_feedforward=4*n_embd, dropout=dropout, activation='gelu', batch_first=True)
-        self.encoder = nn.TransformerEncoder(enc_layer, num_layer = n_layer)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers= n_layer)
         self.ln = nn.LayerNorm(n_embd)
         self.head = nn.Linear(n_embd, 1)
 
