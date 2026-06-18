@@ -5,7 +5,7 @@ from pathlib import Path
 from data_prefs import load_preference
 from collator_rm import PairCollator
 from model_reward import RewardModel
-from loss_reward import bradley_terry, margin_ranking_loss
+from loss_reward import bradley_terry_loss, margin_ranking_loss
 
 def main():
     p = argparse.ArgumentParser()
@@ -45,7 +45,7 @@ def main():
         r_pos = model(pos)
         r_neg = model(neg)
         if args.loss == 'bt':
-            loss = bradley_terry(r_pos, r_neg)
+            loss = bradley_terry_loss(r_pos, r_neg)
         else:
             loss = margin_ranking_loss(r_pos, r_neg, margin=1.0)
         
