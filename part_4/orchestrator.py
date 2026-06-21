@@ -43,7 +43,7 @@ if __name__ == '__main__':
     run ("python -m pytest -q tests/test_resume_shapes.py")
 
     if args.demo:
-        run("python train.py --data ../part_2/dataset/VirajAwate.txt --output ./runs/part4_demo --bpe --vocab_size 8000 --epochs 1 --steps 3000 --batch_size 16 --block_size 128 --n_layer 2 --n_head 2 --n_embd 128 --mixed_precision --grad_accum_steps 2 --log tensorboard")
+        run("python train.py --data ../part_2/dataset/poems_eng.txt --output ./runs/part4_demo --bpe --vocab_size 8000 --epochs 1 --steps 3000 --batch_size 16 --block_size 128 --n_layer 2 --n_head 2 --n_embd 128 --mixed_precision --grad_accum_steps 2 --log tensorboard")
         run("python sample.py --ckpt runs/part4_demo/model_last.pt --tokens 100 --prompt 'Who is Viraj'")
     
     print("\n-----Part 4 Check Complete-----\n")
