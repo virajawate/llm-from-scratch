@@ -3,7 +3,7 @@
     part_8/
     - [] orchestrator.py
     - [x] policy.py
-    - [] rollout.py
+    - [x] rollout.py
     - [] ppo_loss.py
     - [] train_ppo.py
     - [] eval_ppo.py
