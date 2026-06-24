@@ -2,7 +2,7 @@
     Structure
     part_8/
     - [] orchestrator.py
-    - [] policy.py
+    - [x] policy.py
     - [] rollout.py
     - [] ppo_loss.py
     - [] train_ppo.py
