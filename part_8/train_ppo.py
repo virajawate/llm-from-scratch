@@ -162,4 +162,48 @@ def main():
         logits_new, values_new_full, _ = policy(seq, None)
         logp_full = torch.log_softmax(logits_new[:, :-1, :], dim=-1)
         labels = seq[:, 1:]
+        new_logp_all = logp_full.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
+        new_logp = new_logp_all[act_mask]
+        new_values = values_new_full[:, :-1][act_mask]
+
+        from ppo_loss import ppo_losses
+        out_loss = ppo_losses(new_logp, old_logp, adv, new_values, old_values, returns, clip_ratio=0.2, vf_coef=0.5, ent_coef=0.0)
+        loss = out_loss.total_loss
+        opt.zero_grad(set_to_none=True)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
+        opt.step()
+        policy.eval()
+
+        with torch.no_grad():
+            # KL (old || new): movement of the updates policy from the snapshot used to collect data
+            lp_post = model_logprobs(policy, seq)
+            lp_post = lp_post[act_mask]
+            kl_post = (old_logp - lp_post).mean()
+
+            # KL (now || ref): how far the current policy is from hte frozen regerence
+            lp_now = lp_post
+            kl_ref_now = (lp_now - ref_logp).mean()
         
+        step += 1
+        if step % 10 == 0:
+            print(
+                f"Step {step} | Loss {loss.item():.4f}"
+                f"| Value Loss {out_loss.value_loss.item():.4f} | KL_move {kl_post.item():.6f} | KL_ref {kl_ref_now.item():.6f}"
+            )
+        
+    _P(args.out).mkdir(parents=True, exist_ok=True)
+    torch.save({
+        'model' : policy.state_dict(),
+        'config' : {
+            'vocab_size' : vocab_size,
+            'block_size' : block_size,
+            'n_layer' : n_layer,
+            'n_head' : n_head,
+            'n_embd' : n_embd,
+        }
+    }, str(_P(args.out)/'model_last.pt'))
+    print(f"Saved PPO policy to {args.out}/model_last.pt")
+
+if __name__ == '__main__':
+    main()
