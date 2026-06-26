@@ -110,3 +110,56 @@ def main():
             data.append((torch.tensor(full, dtype=torch.long), boundary, r_scalar))
         
         # Pad to same length
+        policy_ctx = getattr(policy, "block_size", block_size)
+        max_len = min(policy_ctx, max(t[0].numel() for t in data))
+        B = len(data)
+        seq = torch.zeros(B, max_len, dtype=torch.long, device=device)
+        mask = torch.zeros(B, max_len, dtype=torch.bool, device=device)
+        last_idx = torch.zeros(B, dtype=torch.long, device=device)
+        rewards = torch.zeros(B, max_len, dtype=torch.long, device=device)
+
+        for i, (ids, boundary, r_scalar) in enumerate(data):
+            L_full = ids.numel()
+            L = min(L_full, max_len)
+            drop = L_full - L
+            b = max(0, boundary - drop)
+            seq[i, L:] = ids[-L:]
+            if L < max_len:
+                seq[i, L:] = 2 # Fill remaining position with <pad> token
+            mask[i, b:L] = True
+            rewards[i, L-1] = r_scalar
+            last_idx[i] = L-1
+
+        # logprobs & values for policy and reference
+        # model_logprobs returns (B, T-1) for next-token logp; align to seq[:, 1:]
+        pol_lp = model_logprobs(policy, seq)
+        ref_lp = model_logprobs(ref, seq)
+        # values for seq positions (B, T)
+        with torch.no_grad():
+            logits, values, _ = policy(seq, None)
+        values = values[:, :-1] # Align to pol_lp
+
+        # Select only action positions
+        act_mask = mask[:, 1:]
+        old_logp = pol_lp[act_mask].detach()
+        ref_logp = ref_lp[act_mask].detach()
+        old_values = values[act_mask].detach()
+
+        # KL per action token and shaped rewards
+        kl = (old_logp - ref_logp)
+        shaped_r = rewards[:, 1:][act_mask] - args.kl_coef * kl # Penalty for drifting
+        # Compute adavantage / returns with last-step bootstrap = 0 (episodic per response)
+        # Flatten by sequence order inside each sample; we'll approximate by grouping tokens per sample using last_idx.
+        # For tutorial simplicity, treat advantage = shape_r - old_values (No GAE). Works for end-only reward.
+        returns = shaped_r
+        adv = returns - old_values
+        # Normalize Adv
+        adv = (adv - adv.mean()) / (adv.std().clamp_min(1e-6))
+
+        # -------- UPDATE (single pass PPO for demo) -------
+        # This step is done multiple times per batch in practice
+        policy.train()
+        logits_new, values_new_full, _ = policy(seq, None)
+        logp_full = torch.log_softmax(logits_new[:, :-1, :], dim=-1)
+        labels = seq[:, 1:]
+        
