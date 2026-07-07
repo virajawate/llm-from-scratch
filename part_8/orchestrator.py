@@ -6,7 +6,7 @@
     - [x] rollout.py
     - [x] ppo_loss.py
     - [x] train_ppo.py
-    - [] eval_ppo.py
+    - [x] eval_ppo.py
     - tests/
         - [] test_ppo_loss.py
         - [] test_policy_forward.py
