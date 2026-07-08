@@ -8,8 +8,8 @@
     - [x] train_ppo.py
     - [x] eval_ppo.py
     - tests/
-        - [] test_ppo_loss.py
-        - [] test_policy_forward.py
+        - [x] test_ppo_loss.py
+        - [x] test_policy_forward.py
 
 ---- Run
 > cd part_8
