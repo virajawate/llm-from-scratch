@@ -11,6 +11,7 @@ class ByteTokenizer:
     def decode(self, ids)->str:
         if isinstance(ids, torch.Tensor):
             ids = ids.tolist()
+        print(ids)
         return bytes(ids).decode('utf-8', errors='ignore')
     
     @property

@@ -80,7 +80,7 @@ def main():
     prompts = sample_prompts(16)
 
     step = 0
-    while step < args.step:
+    while step < args.steps:
         # -------- COLLECT ROLLOUT BATCH --------
         batch_prompts = prompts[ (step*args.batch_size) % len(prompts) : ((step+1)*args.batch_size) % len(prompts)]
         if len(batch_prompts) < args.batch_size:

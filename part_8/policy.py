@@ -48,4 +48,4 @@ class PolicyWithValue(nn.Module):
         return logits, values, loss
 
     def generate(self, *args, **kwargs):
-        return self.lm.generate(*args, *kwargs)
+        return self.lm.generate(*args, **kwargs)

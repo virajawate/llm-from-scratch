@@ -23,7 +23,7 @@ def run(cmd: str):
     print(f"\n>> {cmd}")
     result = subprocess.run(cmd.split(), cwd=ROOT)
     if result.returncode != 0:
-        sys.exit(result.resturncode)
+        sys.exit(result.returncode)
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # 2) Optional Demo (requires SFT+RM checkpoints from Part 6 & 7)
     if args.demo:
-        run(f"python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.py --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --steps {args.steps} --batch_size 4 --resp_len 128 --bpe_dir ../part_4/runs/part4-demo/tokenizer")
-        run("python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.py --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --split train[:24] --bpe_dir ../part_4/runs/part4-demo/tokenizer")
+        run(f"python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.pt --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --steps {args.steps} --batch_size 4 --resp_len 128 --bpe_dir ../part_4/runs/part4-demo/tokenizer")
+        run("python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.pt --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --split train[:24] --bpe_dir ../part_4/runs/part4-demo/tokenizer")
     
     print("Part 8 completed.")
