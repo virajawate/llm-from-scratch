@@ -37,7 +37,8 @@ class RLHFTokenizer:
                 self.tok = BPETokenizer(vocab_size=vocab_size)
                 if bpe_dir:
                     self.tok.load(bpe_dir)
-            except Exception:
+            except Exception as e:
+                print("BPE failed:", repr(e))
                 self.tok = None
         if self.tok is None and ByteTokenizer is not None:
             self.tok = ByteTokenizer()
