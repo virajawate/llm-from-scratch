@@ -9,7 +9,7 @@ sys.path.append(str(_P(__file__).resolve().parents[1]/'part_4'))
 
 try:
     from tokenizer_bpe import BPETokenizer
-    _HAS_BPE - True
+    _HAS_BPE = True
 except Exception:
     _HAS_BPE = False
 
