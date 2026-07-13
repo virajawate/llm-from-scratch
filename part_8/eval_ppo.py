@@ -14,7 +14,7 @@ def score_policy(policy_ckpt:str, rm_ckpt:str, bpe_dir:str|None, n:int=16):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     tok = RLHFTokenizer(block_size=256, bpe_dir=bpe_dir)
     ckpt = torch.load(policy_ckpt, map_location=device)
-    cfg = ckpt.get('config', [])
+    cfg = ckpt.get('config', {})
     pol = PolicyWithValue(
         cfg.get('vocab_size', tok.vocab_size),
         cfg.get('block_size', tok.block_size),
@@ -22,7 +22,7 @@ def score_policy(policy_ckpt:str, rm_ckpt:str, bpe_dir:str|None, n:int=16):
         cfg.get('n_head', 2),
         cfg.get('n_embd', 128)
     ).to(device)
-    pol.load_state_dict()
+    pol.lm.load_state_dict(ckpt['model'])
     pol.eval()
 
     ref = PolicyWithValue(
@@ -47,7 +47,7 @@ def score_policy(policy_ckpt:str, rm_ckpt:str, bpe_dir:str|None, n:int=16):
         n_head=rckpt_config.get('n_head', 4),
         n_embd=rckpt_config.get('n_embd', 4),
     ).to(device)
-    rm.load_state_dict()
+    rm.load_state_dict(rckpt['model'])
     rm.eval()
 
     prompts = sample_prompts(n)
