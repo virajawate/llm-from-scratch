@@ -38,6 +38,6 @@ if __name__ == "__main__":
     # 2) Optional Demo (requires SFT+RM checkpoints from Part 6 & 7)
     if args.demo:
         run(f"python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.pt --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --steps {args.steps} --batch_size 4 --resp_len 128 --bpe_dir ../part_4/runs/part4_demo/tokenizer")
-        run("python train_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.pt --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --split train[:24] --bpe_dir ../part_4/runs/part4_demo/tokenizer")
+        run("python eval_ppo.py --policy_ckpt ../part_6/runs/sft-demo/model_last.pt --reward_ckpt ../part_7/runs/rm-demo/model_last.pt --split train[:24] --bpe_dir ../part_4/runs/part4_demo/tokenizer")
     
     print("Part 8 completed.")
