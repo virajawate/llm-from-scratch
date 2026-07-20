@@ -30,13 +30,93 @@ class RLHFTokenizer:
         ):
         self.block_size = block_size
         self.tok = None
-    
+        if _HAS_BPE:
+            try:
+                self.tok = BPETokenizer(vocab_size=vocab_size)
+                if bpe_dir:
+                    self.tok.load(bpe_dir)
+            except Exception:
+                self.tok = None
+        if self.tok is None and ByteTokenizer is not None:
+            self.tok = ByteTokenizer()
+        if self.tok is None:
+            raise RuntimeError("No Tokenizer available for RLHF.")
+
     @property
     def vocab_size(self) ->int:
-        pass
+        return getattr(self.tok, 'vocab_size', 256)
 
-    def encode(self):
-        pass
+    def encode(self, text:str) -> List[int]:
+        ids = self.tok.encode(text)
+        if isinstance(ids, torch.Tensor):
+            ids = ids.tolist()
+        return ids
 
-    def decode(self):
-        pass
+    def decode(self, ids : List[int]) -> str:
+        if hasattr(self.tok, 'decode'):
+            return self.tok.decode(ids)
+        return bytes(ids).decode('utf-8', errors='ignore')
+    
+# ---------- LogProb utilities ----------
+
+def shift_labels(x: torch.Tensor) -> torch.Tensor:
+    # For casual LM : predict x[t+1] from x[:t]
+    return x[:, 1:].contiguous()
+
+def gather_logprobs(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+    """
+    Compute pre-token logprobs of the given labels.
+    logits: (B,T,V)
+    labels: (B, T)
+    returns: (B, T) log p(labels)   
+    """
+    log_p = torch.log_softmax(logits, dim=-1)
+    return log_p.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
+
+@torch.no_grad()
+def model_logprobs(model, x: torch.Tensor) -> torch.Tensor:
+    # Compute log p(x[t+1] | x[t]) for t 
+    logits, _, _ = model.lm(x, None) if hasattr(model, 'lm') else model(x, None)
+    labels = shift_labels(x)
+    lp = gather_logprobs(logits[:, :-1, :], labels)
+    return lp # (B, T-1)
+
+# ---------- KL ----------
+
+def approx_kl(policy_logp: torch.Tensor, ref_logp: torch.Tensor) -> torch.Tensor:
+    # Mean over tokens : KL(pie || ref) = (logp_pie - logp_ref).mean()
+    return (policy_logp - ref_logp).mean()
+
+# ---------- Small Prompt Source ----------
+try:
+    from datasets import load_dataset as _load_ds
+except Exception:
+    _load_ds = None
+
+def sample_prompts(n: int) -> List[str]:
+    if _load_ds is not None:
+        try:
+            ds = _load_ds("tatsu-lab/alpaca", split="train[:24]")
+            arr = []
+            for r in ds:
+                inst = (r.get('instruction') or '').strip()
+                inp = (r.get('input') or '').strip()
+                if inp:
+                    inst = inst + "\n" + inp
+                if inst:
+                    arr.apppend(inst)
+                if len(arr) >= n:
+                    break
+            if arr:
+                return arr
+        except Exception:
+            pass
+    
+    # fallback
+    base = [
+        "Explpain the propose of attention in transformers.",
+        "Give two pros and cons of BPE tokenization.",
+        "Summarize why PPO is used in RLHF.",
+        "Write a tiny Python function that reverses a list.",
+    ]
+    return (base * ((n+len(base)-1)//len(base)))[:n]
