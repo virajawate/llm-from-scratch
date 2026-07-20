@@ -4,7 +4,7 @@ Part 9 Layout
 - [] orchestrator.py
 - [x] policy.py
 - [x] rollout.py
-- [] grpo_loss.py
+- [x] grpo_loss.py
 - [] train_ppo.py
 - [] eval_ppo.py
 - [] tests/
