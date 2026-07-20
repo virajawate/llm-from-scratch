@@ -3,8 +3,8 @@ Part 9 Layout
 
 - [] orchestrator.py
 - [x] policy.py
-- [] rollout.py
-- [] grpo.py
+- [x] rollout.py
+- [] grpo_loss.py
 - [] train_ppo.py
 - [] eval_ppo.py
 - [] tests/
