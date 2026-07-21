@@ -5,7 +5,7 @@ Part 9 Layout
 - [x] policy.py
 - [x] rollout.py
 - [x] grpo_loss.py
-- [] train_ppo.py
+- [x] train_ppo.py
 - [] eval_ppo.py
 - [] tests/
     - [] test_ppo_loss.py
