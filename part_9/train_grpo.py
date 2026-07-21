@@ -117,4 +117,127 @@ def main():
                     boundary_list.append(boundary)
                     prompt_id_of.append(pid)
                     raw_rewards.append(r_scalar)
-                    
+
+        # ----------- PAD TO BATCH ----------
+        B = len(seq_list)
+        policy_ctx = getattr(policy, "block_size", block_size)
+        max_len = min(policy_ctx, max(s.numel() for s in seq_list))
+        seq = torch.zeros(B, max_len, dtype=torch.long, device = device)
+        mask = torch.zeros(B, max_len, dtype=torch.bool, device = device)
+        last_idx = torch.zeros(B, dtype=torch.long, device=device)
+
+        for i, (ids, bnd) in enumerate(zip(seq_list, boundary_list)):
+            L_full = ids.numel()
+            L = min(L_full, max_len)
+            drop = L_full - L 
+            b = max(0, bnd - drop)
+            seq[i, :L] = ids[-L:]
+            if L < max_len:
+                seq[i, L:] = 2
+            # action are predicting token t from <= t-1 -> positions [1 ... L-1]
+            mask[i, b:L] = True
+            last_idx[i] = L - 1
+        
+        # ------- LOGPROBS & KL VS REF (token-level) --------
+        # model_logprobs returns log p(x[t] | x[:t-1]) for t = 1...T-1 over labels=seq[:, 1:]
+        with torch.no_grad():
+            pol_lp_full = model_logprobs(policy, seq)
+            ref_lp_full = model_logprobs(ref, seq)
+        
+        # action positions (predict positions [1...T-1]); we went only response token
+        act_mask = mask[:, 1:]
+        old_logp = pol_lp_full[act_mask].detach()
+        ref_logp = ref_lp_full[act_mask].detach()
+
+        # per-token KL on action tokens 
+        kl_tok = (old_logp - ref_logp)
+        
+        # ------------ SHAPED TRAJECTORY REWARD & GROUP BASELINE ------------
+        traj_id_for_token = []
+        counts = torch.zeros(B, dtype=torch.long, device=device)
+        offset = 0
+        for i in range(0):
+            mrow = act_mask[i]
+            n_i = int(mrow.sum().item())
+            if n_i > 0:
+                traj_id_for_token.extend([i] * n_i)
+            counts[i] = n_i
+            offset += n_i
+        traj_id_for_token = torch.tensor(traj_id_for_token, dtype=torch.long, device=device)
+        raw_rewards_t = torch.tensor(raw_rewards, dtype=torch.float, device=device)
+
+        # Compute pre-prompt group mean of shaped reward
+        group_mean = torch.zeros(B, dtype=torch.float, device=device)
+        for pid in range(P):
+            idxs = [i for i in range(B) if prompt_id_of[i] == pid]
+            if not idxs:
+                continue
+            idxs_t = torch.tensor(idxs, dtype=torch.long, device=device)
+            mean_val = raw_rewards_t[idxs_t].mean()
+            group_mean[idxs_t] = mean_val
+        
+        # Advantage per trajectory, broadcast to its action tokens
+        traj_adv = raw_rewards_t - group_mean # (B,)
+
+        # Build a flat Tensor of adv aligned with old_logp / new_logp on action tokens
+        if kl_tok.numel() > 0:
+            adv_flat = traj_adv[traj_id_for_token]
+        else:
+            adv_flat = torch.zeros(0, dtype=torch.float, device=device)
+        
+        # Normalize adv (optional)
+        if adv_flat.numel() > 1:
+            adv_flat = (adv_flat - adv_flat.mean()) / (adv_flat.std().clamp_min(1e-6))
+        
+        # ------ UPDATE (policy-only PPO cliped objective) ----------
+        policy.train()
+        logits_new, _, _ = policy(seq, None) # ignore value head
+        logp_full = torch.log_softmax(logits_new[:, :-1, :], dim=-1)
+        labels = seq[:, 1:]
+        new_logp_all = logp_full.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
+        new_logp = new_logp_all[act_mask]
+
+        # Mean KL over action tokens
+        kl_now_ref_mean = (new_logp - ref_logp).mean() if new_logp.numel() > 0 else torch.tensor(0.0, device=device)
+
+        out_loss = ppo_policy_only_losses(
+            new_logp = new_logp,
+            old_logp = old_logp,
+            adv=adv_flat,
+            clip_ratio = 0.2,
+            ent_coef= 0.0, 
+            kl_coef= args.kl_coef,
+            kl_mean=kl_now_ref_mean,
+        )
+        loss = out_loss.total_loss
+
+        opt.zero_grad(set_to_none=True)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
+        opt.step()
+        policy.eval()
+        with torch.no_grad():
+            lp_post = model_logprobs(policy, seq)[act_mask]
+            kl_move = (old_logp - lp_post).mean() if lp_post.numel() > 0 else torch.tensor(0.0, device=device)
+            # KL(now || ref)
+            kl_ref_now = (lp_post - ref_logp).mean() if lp_post.numel() > 0 else torch.tensor(0.0, device=device)
+        
+        step += 1
+        if step % 10 == 0:
+            print(f" {step} | {loss.item():.4f} | {kl_move.item():.6f} | {kl_ref_now.item():.6f}")
+
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    torch.save({
+        'model' : policy.state_dict(),
+        'config' : {
+            'vocab_size' : vocab_size,
+            'block_size' : block_size,
+            'n_layer' : n_layer,
+            'n_head' : n_head,
+            'n_embd' : n_embd,
+        }
+    }, str(Path(args.out)/'model_last.pt'))
+    print(f"Saved GRPO policy to {args.out}/model_last.pt")
+
+if __name__ == "__main__":
+    main()
