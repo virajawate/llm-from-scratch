@@ -3,7 +3,7 @@ Following LLM from scratch tutorial
 
 # Run `part_1` locally
 ```sh
-cd part_one
+cd part_1
 python orchestrator.py --visualize
 ```
 
