@@ -64,7 +64,6 @@ class EncoderBlock(nn.Module):
         x = x + self.ff_n(self.norm_2(x))
         return x
 
-
 class DecoderBlock(nn.Module):
     def __init__(self, block_size:int, vocab_size:int, n_embd:int, dropout:int, n_head:int, n_layer:int):
         super().__init__()
